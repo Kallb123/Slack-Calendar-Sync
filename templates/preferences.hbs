@@ -1,0 +1,12 @@
+<h1>Slack Calendar Sync</h1>
+<form action="/preferences" method="post">
+  <label><input type="checkbox" name="ooo" {{{ooo}}} /> Show Out of Office Status</label><br />
+  <label><input type="checkbox" name="default" {{{default}}} /> Show In Meeting Status</label><br />
+  <label><input type="checkbox" name="focus" {{{focus}}} /> Show Focus Time Status</label><br />
+  <label><input type="checkbox" name="location" {{{location}}} /> Show Working Location Status</label><br />
+  <input type="submit" value="Update" class="button success" style="margin:2em 0" />
+</form>
+<p>
+  {{complete}}
+</p>
+<a href="/" class="button dark">Back to home</a>
