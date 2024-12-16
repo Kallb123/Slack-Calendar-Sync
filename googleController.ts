@@ -305,8 +305,8 @@ function eventSort(a: calendar_v3.Schema$Event, b: calendar_v3.Schema$Event) {
           logger.error("Event didn't have an end date");
           return -1;
         }
-        const aDuration = moment(a.end.dateTime).unix() - moment(a.start.dateTime).unix() ?? moment(a.end.date).unix() - moment(a.start.date).unix();
-        const bDuration = moment(b.end.dateTime).unix() - moment(b.start.dateTime).unix() ?? moment(b.end.date).unix() - moment(b.start.date).unix();
+        const aDuration = a.end.dateTime && a.start.dateTime ? moment(a.end.dateTime).unix() - moment(a.start.dateTime).unix() : moment(a.end.date).unix() - moment(a.start.date).unix();
+        const bDuration = b.end.dateTime && b.start.dateTime ? moment(b.end.dateTime).unix() - moment(b.start.dateTime).unix() : moment(b.end.date).unix() - moment(b.start.date).unix();
         if (aDuration === bDuration) {
           // Both same duration
           // Use created datetime, more recent first
