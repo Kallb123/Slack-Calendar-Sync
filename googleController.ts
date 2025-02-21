@@ -5,6 +5,10 @@ import crypto = require('crypto');
 import { logger } from '.';
 
 const secrets = require('./secrets.json');
+const host = secrets.host ?? "localhost";
+const port = secrets.port ?? "3000";
+const httpsEnabled = secrets.https ?? true;
+const baseUrl = `${host}:${port}`;
 
 // Download your OAuth2 configuration from the Google
 const googleCredentials = require('./google-credentials.json');
@@ -22,13 +26,13 @@ const authScopes = [
 const oauthClient = new google.auth.OAuth2(
   googleCredentials.web.client_id,
   googleCredentials.web.client_secret,
-  `${secrets.baseUrl}/googleauth`
+  `${baseUrl}/googleauth`
 );
 // Generate the url that will be used for the consent dialog.
 const googleAuthUrl = oauthClient.generateAuthUrl({
   access_type: 'offline',
   scope: authScopes,
-  redirect_uri: `${secrets.baseUrl}/googleauth`
+  redirect_uri: `${baseUrl}/googleauth`
 });
 
 // Takes an OAuth2 code and gets a User Token
@@ -58,7 +62,7 @@ async function getCurrentGenericEvent(gAuth: Credentials, eventType: string): Pr
   const oAuth2Client = new google.auth.OAuth2(
     googleCredentials.web.client_id,
     googleCredentials.web.client_secret,
-    `${secrets.baseUrl}/googleauth`
+    `${baseUrl}/googleauth`
   );
   oAuth2Client.setCredentials(gAuth);
 
@@ -219,7 +223,7 @@ async function getUserData(gAuth: Credentials) {
     const oAuth2Client = new google.auth.OAuth2(
       googleCredentials.web.client_id,
       googleCredentials.web.client_secret,
-      `${secrets.baseUrl}/googleauth`
+      `${baseUrl}/googleauth`
     );
     oAuth2Client.setCredentials(gAuth);
 
@@ -238,7 +242,7 @@ async function getUserId(gAuth: Credentials) {
     const oAuth2Client = new google.auth.OAuth2(
       googleCredentials.web.client_id,
       googleCredentials.web.client_secret,
-      `${secrets.baseUrl}/googleauth`
+      `${baseUrl}/googleauth`
     );
     oAuth2Client.setCredentials(gAuth);
 
@@ -273,7 +277,7 @@ async function getUserName(gAuth: Credentials) {
     const oAuth2Client = new google.auth.OAuth2(
       googleCredentials.web.client_id,
       googleCredentials.web.client_secret,
-      `${secrets.baseUrl}/googleauth`
+      `${baseUrl}/googleauth`
     );
     oAuth2Client.setCredentials(gAuth);
 

@@ -40,20 +40,26 @@ const logger = winston.createLogger({
 })
 
 const secrets = require('./secrets.json');
+const sessionKey = secrets.sessionKey ?? "secure key";
+const host = secrets.host ?? "localhost";
+const port = secrets.port ?? 3000;
+const httpsEnabled = secrets.https ?? true;
+const baseUrl = `${host}:${port}`;
+
+logger.info(`Loading with baseUrl: ${baseUrl}`);
 
 let privateKey = null;
 let publicCert = null;
-if (!secrets.development) {
+if (httpsEnabled) {
   privateKey = fs.readFileSync('./private.key', 'utf8');
   publicCert = fs.readFileSync('./public.cert', 'utf8');
+  logger.info('Loaded key and certificate');
 }
 
 const httpsOptions = {
   key: privateKey,
   cert: publicCert
 };
-const httpsPort = 3000;
-const baseUrl = secrets.baseUrl;
 
 type Database = {
   users: User[];
@@ -121,7 +127,7 @@ setupStorage();
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(session({secret: secrets.sessionKey}));
+app.use(session({secret: sessionKey}));
 const httpsServer = https.createServer(httpsOptions, app);
 
 hbs.registerPartials(path.join(__dirname, '../', 'templates', 'partials'), () => {});
@@ -598,13 +604,13 @@ schedule.scheduleJob('01,16,31,46 07-17 * * 1-5', async () => {
   }
 });
 
-if (secrets.development) {
-  app.listen(httpsPort, () => {
-    logger.info(`*DEVELOPMENT* Slack <- GCalendar sync app listening on port ${httpsPort}`)
+if (!httpsEnabled) {
+  app.listen(port, () => {
+    logger.info(`*DEVELOPMENT* Slack <- GCalendar sync app listening on port ${port}`)
   });
 } else {
-  httpsServer.listen(httpsPort, () => {
-    logger.info(`Slack <- GCalendar sync app listening on port ${httpsPort}`)
+  httpsServer.listen(port, () => {
+    logger.info(`Slack <- GCalendar sync app listening on port ${port}`)
   });
 }
 
