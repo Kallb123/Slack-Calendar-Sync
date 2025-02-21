@@ -34,7 +34,7 @@ The interface should be available at [localhost](https://localhost:3000).
 
 A private key and certificate will be required for the OAuth flows to work properly, these can be generated for `localhost` and loaded within the app as `/dist/private.key` and `/dist/public.cert`.
 
-If SSL is not possible, you may be able to use the `host` as another URL and then when the auth flow completes, change the URL in the browser to your unsecured instance. This is why the `host` parameter includes the protocol, as the local instance may have HTTPS disabled but the `host` specified for the OAuth flow will need HTTPS enabled.
+If SSL is not possible, you may be able to use the `host` as another URL and then when the auth flow completes, change the URL in the browser to your unsecured instance. This is why the `host` parameter includes the protocol, as the local instance may have HTTPS disabled but the `host` specified for the OAuth flow will need HTTPS enabled. Note that the `port` parameter will be used for both the local running service and the `baseUrl` given to the OAuth (which will usually be the same but may different if local HTTPS is a problem).
 
 ### Building
 
