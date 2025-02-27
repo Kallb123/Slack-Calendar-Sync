@@ -85,12 +85,14 @@ async function getCurrentGenericEvent(gAuth: Credentials, eventType: string): Pr
   if (!events || events.length === 0) {
     return;
   }
+  // Filter the events so that it is only ones which block time (Busy in the UI, Opaque in the API)
+  const opaqueEvents = events.filter(event => event.transparency === "opaque");
   // Filter the events so that it is only ones related to the user
-  let acceptedEvents = events.filter(event => {
+  const acceptedEvents = opaqueEvents.filter(event => {
     // If the event has no attendees, then it is likely OOO or workingLocation, so let it through
     if (!event.attendees || event.attendees.length === 0) return true;
     // Locate the relevant user in the list of attendees, not entirely sure this works
-    var thisAttendee = event.attendees?.find(attendee => attendee.self === true);
+    const thisAttendee = event.attendees?.find(attendee => attendee.self === true);
     // Allow events that are accepted or tentatively accepted
     return thisAttendee?.responseStatus === 'accepted' || thisAttendee?.responseStatus === 'tentative';
   });
