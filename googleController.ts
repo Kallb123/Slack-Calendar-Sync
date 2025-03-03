@@ -57,7 +57,7 @@ async function codeToToken(code: string) {
   }
 }
 
-async function getCurrentGenericEvent(gAuth: Credentials, eventType: string): Promise<calendar_v3.Schema$Event | undefined> {
+async function getCurrentGenericEvent(gAuth: Credentials, eventType: string, filterTransparent: boolean): Promise<calendar_v3.Schema$Event | undefined> {
   // Try to get Google OAuth
   const oAuth2Client = new google.auth.OAuth2(
     googleCredentials.web.client_id,
@@ -86,7 +86,7 @@ async function getCurrentGenericEvent(gAuth: Credentials, eventType: string): Pr
     return;
   }
   // Filter the events so that it is only ones which block time (Busy in the UI, Opaque in the API)
-  const opaqueEvents = events.filter(event => event.transparency === "opaque");
+  const opaqueEvents = filterTransparent ? events.filter(event => event.transparency !== "transparent") : events;
   // Filter the events so that it is only ones related to the user
   const acceptedEvents = opaqueEvents.filter(event => {
     // If the event has no attendees, then it is likely OOO or workingLocation, so let it through
@@ -105,22 +105,22 @@ async function getCurrentGenericEvent(gAuth: Credentials, eventType: string): Pr
 
 // Gets the first (assuming today's) working location for the authenticated user
 async function getCurrentOutOfOfficeEvent(gAuth: Credentials): Promise<calendar_v3.Schema$Event | undefined> {
-  return await getCurrentGenericEvent(gAuth, 'outOfOffice');
+  return await getCurrentGenericEvent(gAuth, 'outOfOffice', false);
 }
 
 // Gets the first (assuming today's) working location for the authenticated user
 async function getCurrentDefaultEvent(gAuth: Credentials): Promise<calendar_v3.Schema$Event | undefined> {
-    return await getCurrentGenericEvent(gAuth, 'default');
+    return await getCurrentGenericEvent(gAuth, 'default', true);
 }
 
 // Gets the first (assuming today's) working location for the authenticated user
 async function getCurrentFocusEvent(gAuth: Credentials): Promise<calendar_v3.Schema$Event | undefined> {
-  return await getCurrentGenericEvent(gAuth, 'focusTime');
+  return await getCurrentGenericEvent(gAuth, 'focusTime', false);
 }
 
 // Gets the first (assuming today's) working location for the authenticated user
 async function getCurrentWorkingLocationEvent(gAuth: Credentials): Promise<calendar_v3.Schema$Event | undefined> {
-  return await getCurrentGenericEvent(gAuth, 'workingLocation');
+  return await getCurrentGenericEvent(gAuth, 'workingLocation', false);
 }
 
 async function getCurrentPriorityEvent(gAuth: Credentials, useOOO: boolean, useDefault: boolean, useFocus: boolean, useLocation: boolean): Promise<calendar_v3.Schema$Event | undefined> {
