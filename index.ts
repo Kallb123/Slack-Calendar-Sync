@@ -442,6 +442,26 @@ app.get('/slackauth', async (req, res) => {
   }
 });
 
+app.get('/forceall', async (req, res) => {
+  logger.info(`GET /forceall`);
+  let errors = [];
+  for (const user of database.users) {
+    logger.info(`Forcing existing user: ${user.gName} (${user.sName})`);
+    try {
+      await setStatus(user);
+    } catch (error) {
+      const exception = makeException(error);
+      logger.error(`Error: ${exception.errorId}`);
+      logger.error(exception.error);
+      errors.push(error);
+    }
+  }
+  res.json({
+    complete: true,
+    errors
+  })
+});
+
 // Use the authenticated tokens to set the Slack user's status
 async function setStatus(user: User) {
   let currentEvent: calendar_v3.Schema$Event | undefined = undefined;
