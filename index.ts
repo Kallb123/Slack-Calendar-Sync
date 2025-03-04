@@ -138,6 +138,7 @@ app.use('/assets', express.static(path.join(__dirname, '../', 'assets')));
 
 // Handle the start of the process
 app.get('/', async (req, res) => {
+  logger.info(`GET /`);
   // Check if the current user has already got tokens in the session
   if (req.session.googletoken && req.session.gid) {
     if (req.session.slacktoken) {
@@ -187,6 +188,7 @@ app.get('/', async (req, res) => {
 
 // Handle a user's request to cancel
 app.get('/cancel', async (req, res) => {
+  logger.info(`GET /cancel`);
   req.session.wantsCancel = true;
   // Check if the current user has already got tokens in the session
   if (req.session.googletoken) {
@@ -232,6 +234,7 @@ app.get('/cancel', async (req, res) => {
 });
 
 app.get('/preferences', async (req, res) => {
+  logger.info(`GET /preferences`);
   // Check if the current user has already got tokens in the session
   if (req.session.gid) {
     const foundUser = getFromDatabase(req.session.gid);
@@ -261,6 +264,7 @@ app.get('/preferences', async (req, res) => {
 });
 
 app.post('/preferences', async (req, res) => {
+  logger.info(`POST /preferences`);
   // Check if the current user has already got tokens in the session
   if (req.session.gid) {
     const foundUser = getFromDatabase(req.session.gid);
@@ -296,6 +300,7 @@ app.post('/preferences', async (req, res) => {
 
 // Handle Google's OAuth redirect
 app.get('/googleauth', async (req, res) => {
+  logger.info(`GET /googleauth`);
   if (req.session.wantsCancel) {
     if (req.session.googletoken) {
       res.redirect('/cancel');
@@ -395,6 +400,7 @@ app.get('/googleauth', async (req, res) => {
 
 // Handle Slack's OAuth redirect
 app.get('/slackauth', async (req, res) => {
+  logger.info(`GET /slackauth`);
   // Check if the current user has already got tokens in the session
   if (req.session.googletoken && req.session.gid) {
     if (req.session.slacktoken) {
