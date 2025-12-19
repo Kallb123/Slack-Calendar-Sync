@@ -44,7 +44,7 @@ const sessionKey = secrets.sessionKey ?? "secure key";
 const host = secrets.host ?? "localhost";
 const port = secrets.port ?? 3000;
 const httpsEnabled = secrets.https ?? true;
-const baseUrl = `${host}:${port}`;
+const baseUrl = secrets.baseUrl ?? `${httpsEnabled ? 'https' : 'http'}://${host}:${port}`;
 
 logger.info(`Loading with baseUrl: ${baseUrl}`);
 
@@ -460,6 +460,11 @@ app.get('/forceall', async (req, res) => {
     complete: true,
     errors
   })
+});
+
+app.get('/healthz', (req, res) => {
+  // A simple 200 OK tells K8s the process is healthy
+  res.status(200).send('OK');
 });
 
 // Use the authenticated tokens to set the Slack user's status

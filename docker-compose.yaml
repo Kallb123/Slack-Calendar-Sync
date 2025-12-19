@@ -1,0 +1,20 @@
+services:
+  slack-calendar-sync:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: slack-sync-app
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000
+    volumes:
+      # 1. Mount the secret files exactly where the dist code expects it
+      - ./dist/secrets.json:/app/dist/secrets.json:ro
+      - ./dist/google-credentials.json:/app/dist/google-credentials.json:ro
+      - ./dist/slack-credentials.json:/app/dist/slack-credentials.json:ro
+      
+      # 2. Persistent storage for node-persist
+      # We use a local folder './storage' which maps to '/app/storage' inside the container
+      - ./storage:/app/storage
+    
+    # Optional: ensure the container restarts if the sync process crashes
+    restart: unless-stopped
