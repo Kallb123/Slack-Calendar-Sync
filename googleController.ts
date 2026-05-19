@@ -8,7 +8,7 @@ const secrets = require('./secrets.json');
 const host = secrets.host ?? "localhost";
 const port = secrets.port ?? "3000";
 const httpsEnabled = secrets.https ?? true;
-const baseUrl = `${host}:${port}`;
+const baseUrl = secrets.baseUrl ?? `${httpsEnabled ? 'https' : 'http'}://${host}:${port}`;
 
 // Download your OAuth2 configuration from the Google
 const googleCredentials = require('./google-credentials.json');
