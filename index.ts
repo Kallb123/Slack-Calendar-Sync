@@ -40,12 +40,14 @@ const logger = winston.createLogger({
 })
 
 const secrets = require('./secrets.json');
+const { version } = require(path.join(__dirname, '../package.json'));
 const sessionKey = secrets.sessionKey ?? "secure key";
 const host = secrets.host ?? "localhost";
 const port = secrets.port ?? 3000;
 const httpsEnabled = secrets.https ?? true;
 const baseUrl = secrets.baseUrl ?? `${httpsEnabled ? 'https' : 'http'}://${host}:${port}`;
 
+logger.info(`Starting Slack-Calendar-Sync v${version}`);
 logger.info(`Loading with baseUrl: ${baseUrl}`);
 
 let privateKey = null;
@@ -131,6 +133,7 @@ app.use(session({secret: sessionKey}));
 const httpsServer = https.createServer(httpsOptions, app);
 
 hbs.registerPartials(path.join(__dirname, '../', 'templates', 'partials'), () => {});
+hbs.registerHelper('appVersion', () => version);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, '../', 'templates'));
 
