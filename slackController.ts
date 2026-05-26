@@ -12,6 +12,9 @@ const searchParams = new url.URLSearchParams();
 searchParams.append('client_id', slackCredentials.slackClientId);
 searchParams.append('user_scope', 'users.profile:write');
 searchParams.append('redirect_uri', slackCredentials.slackRedirectURL);
+if (slackCredentials.slackTeamId) {
+  searchParams.append('team', slackCredentials.slackTeamId);
+}
 slackAuthUrl.search = searchParams.toString();
 
 // Takes an OAuth2 code and gets a User Token

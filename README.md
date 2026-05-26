@@ -41,7 +41,9 @@ Takes the form: `{"web":{"client_id":"","project_id":"","auth_uri":"","token_uri
 
 `slack-credentials.yaml`
 
-Takes the form: `{"slackClientId":"","slackClientSecret":"","slackRedirectURL":""}`
+Takes the form: `{"slackClientId":"","slackClientSecret":"","slackRedirectURL":"","slackTeamId":""}`
+
+`slackTeamId` is required for non-distributed (development) Slack apps. Find it in your Slack workspace URL (`https://app.slack.com/client/TXXXXXXXX`) or via **Settings > About this workspace**. Leave it out or set it to `null` for distributed apps.
 
 ### Development
 
@@ -64,7 +66,7 @@ If SSL is not possible, you may be able to use the `host` as another URL and the
 
 Call `docker compose build` in the project to build the image.
 
-Alternativelt, without containerisation, the application is developed in TypeScript, run `npm run build` to generate the JavaScript source in the `dist` folder.
+Alternatively, without containerisation, the application is developed in TypeScript, run `npm run build` to generate the JavaScript source in the `dist` folder.
 
 ### Running
 
