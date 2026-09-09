@@ -74,6 +74,7 @@ type User = {
   sName: string | undefined;
   sAuth: string;
   useOOO: boolean;
+  useOOOText: boolean;
   useDefault: boolean;
   useFocus: boolean;
   useLocation: boolean;
@@ -110,6 +111,10 @@ async function setupStorage() {
   }
 
   for (const user of database.users) {
+    // Users stored before the OOO title preference existed default to showing it
+    if (typeof user.useOOOText !== 'boolean') {
+      user.useOOOText = true;
+    }
     // const sName = await slackController.getName(user.sAuth);
     // logger.info(sName);
     // const gName = await googleController.getUserName(user.gAuth);
@@ -158,11 +163,12 @@ app.get('/', async (req, res) => {
             sAuth: req.session.slacktoken,
             sName: undefined,
             useOOO: true,
+            useOOOText: true,
             useDefault: true,
             useFocus: true,
             useLocation: true
           }
-          await addToDatabase(newUser.gAuth, newUser.sAuth, newUser.sName, newUser.useOOO, newUser.useDefault, newUser.useFocus, newUser.useLocation);
+          await addToDatabase(newUser.gAuth, newUser.sAuth, newUser.sName, newUser.useOOO, newUser.useOOOText, newUser.useDefault, newUser.useFocus, newUser.useLocation);
           await setStatus(newUser);
         }
         res.render('complete');
@@ -244,6 +250,7 @@ app.get('/preferences', async (req, res) => {
     if (foundUser) {
       res.locals = {
         ooo: foundUser.useOOO ? 'checked="true"' : "",
+        oootext: foundUser.useOOOText ? 'checked="true"' : "",
         default: foundUser.useDefault ? 'checked="true"' : "",
         focus: foundUser.useFocus ? 'checked="true"' : "",
         location: foundUser.useLocation ? 'checked="true"' : "",
@@ -273,12 +280,14 @@ app.post('/preferences', async (req, res) => {
     const foundUser = getFromDatabase(req.session.gid);
     if (foundUser) {
       const useOOO = req.body.ooo === 'on';
+      const useOOOText = req.body.oootext === 'on';
       const useDefault = req.body.default === 'on';
       const useFocus = req.body.focus === 'on';
       const useLocation = req.body.location === 'on';
-      await addToDatabase(foundUser.gAuth, foundUser.sAuth, foundUser.sName, useOOO, useDefault, useFocus, useLocation);
+      await addToDatabase(foundUser.gAuth, foundUser.sAuth, foundUser.sName, useOOO, useOOOText, useDefault, useFocus, useLocation);
       res.locals = {
         ooo: useOOO ? 'checked="true"' : "",
+        oootext: useOOOText ? 'checked="true"' : "",
         default: useDefault ? 'checked="true"' : "",
         focus: useFocus ? 'checked="true"' : "",
         location: useLocation ? 'checked="true"' : "",
@@ -477,7 +486,7 @@ async function setStatus(user: User) {
     currentEvent = await getCurrentPriorityEvent(user.gAuth, user.useOOO, user.useDefault, user.useFocus, user.useLocation);
   } catch (error) {
     try {
-      await addToDatabase(user.gAuth, user.sAuth, user.sName, user.useOOO, user.useDefault, user.useFocus, user.useLocation);
+      await addToDatabase(user.gAuth, user.sAuth, user.sName, user.useOOO, user.useOOOText, user.useDefault, user.useFocus, user.useLocation);
     } catch (error2) {
       const errorId = crypto.randomUUID();
       throw {
@@ -493,7 +502,7 @@ async function setStatus(user: User) {
   }
 
   if (!currentEvent) {
-    await addToDatabase(user.gAuth, user.sAuth, user.sName, user.useOOO, user.useDefault, user.useFocus, user.useLocation);
+    await addToDatabase(user.gAuth, user.sAuth, user.sName, user.useOOO, user.useOOOText, user.useDefault, user.useFocus, user.useLocation);
     return;
     // const errorId = crypto.randomUUID();
     // throw {
@@ -502,11 +511,11 @@ async function setStatus(user: User) {
     // }
   }
 
-  const statusText = getStatusTextFromEvent(currentEvent);
+  const statusText = getStatusTextFromEvent(currentEvent, user.useOOOText);
   const statusEmoji = getStatusEmojiFromEvent(currentEvent);
 
   if (!statusText || !statusEmoji) {
-    await addToDatabase(user.gAuth, user.sAuth, user.sName, user.useOOO, user.useDefault, user.useFocus, user.useLocation);
+    await addToDatabase(user.gAuth, user.sAuth, user.sName, user.useOOO, user.useOOOText, user.useDefault, user.useFocus, user.useLocation);
     return;
   }
 
@@ -515,7 +524,7 @@ async function setStatus(user: User) {
     if (slackRes.ok) {
       const sName = `${slackRes.profile.first_name} ${slackRes.profile.last_name}`;
       logger.info(`Slack profile (${sName}) updated to ${statusText}!`);
-      await addToDatabase(user.gAuth, user.sAuth, sName, user.useOOO, user.useDefault, user.useFocus, user.useLocation);
+      await addToDatabase(user.gAuth, user.sAuth, sName, user.useOOO, user.useOOOText, user.useDefault, user.useFocus, user.useLocation);
       return;
     } else {
       const errorId = crypto.randomUUID();
@@ -534,7 +543,7 @@ async function setStatus(user: User) {
 }
 
 // Add the user to the database (or make sure their entry is up to date)
-async function addToDatabase(gAuth: Credentials, sAuth: string, sName: string | undefined, useOOO: boolean, useDefault: boolean, useFocus: boolean, useLocation: boolean) {
+async function addToDatabase(gAuth: Credentials, sAuth: string, sName: string | undefined, useOOO: boolean, useOOOText: boolean, useDefault: boolean, useFocus: boolean, useLocation: boolean) {
   let gData = null;
   try {
     gData = await getUserData(gAuth);
@@ -560,6 +569,7 @@ async function addToDatabase(gAuth: Credentials, sAuth: string, sName: string | 
     gId: gData.id,
     gName: gData.name,
     useOOO,
+    useOOOText,
     useDefault,
     useFocus,
     useLocation
@@ -575,6 +585,7 @@ async function addToDatabase(gAuth: Credentials, sAuth: string, sName: string | 
     foundUser.sName = newUser.sName;
     foundUser.sAuth = newUser.sAuth;
     foundUser.useOOO = newUser.useOOO;
+    foundUser.useOOOText = newUser.useOOOText;
     foundUser.useDefault = newUser.useDefault;
     foundUser.useFocus = newUser.useFocus;
     foundUser.useLocation = newUser.useLocation;
