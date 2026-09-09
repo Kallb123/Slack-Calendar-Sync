@@ -164,7 +164,33 @@ async function getCurrentPriorityEvent(gAuth: Credentials, useOOO: boolean, useD
   return;
 }
 
-function getStatusTextFromEvent(event: calendar_v3.Schema$Event) {
+// Slack rejects status text longer than 100 characters
+const slackStatusTextLimit = 100;
+
+// Titles that say no more than the generic status already does
+const genericOutOfOfficeSummaries = ['out of office', 'out of the office', 'ooo', 'away'];
+
+// Shortens text so that Slack will accept it as a status
+function truncateForSlack(text: string) {
+  if (text.length <= slackStatusTextLimit) {
+    return text;
+  }
+  return `${text.substring(0, slackStatusTextLimit - 1).replace(/\s+$/, '')}…`;
+}
+
+// Uses the calendar event's own title where it adds something (e.g. "At a conference in Berlin")
+function getOutOfOfficeText(event: calendar_v3.Schema$Event, useOOOText: boolean) {
+  const summary = event.summary?.trim();
+  if (!useOOOText || !summary) {
+    return 'Out of Office';
+  }
+  if (genericOutOfOfficeSummaries.includes(summary.toLowerCase())) {
+    return 'Out of Office';
+  }
+  return truncateForSlack(summary);
+}
+
+function getStatusTextFromEvent(event: calendar_v3.Schema$Event, useOOOText: boolean) {
   switch (event.eventType) {
     case 'workingLocation': {
       if (event.workingLocationProperties) {
@@ -186,7 +212,7 @@ function getStatusTextFromEvent(event: calendar_v3.Schema$Event) {
       return 'In a Meeting';
     }
     case 'outOfOffice': {
-      return 'Out of Office';
+      return getOutOfOfficeText(event, useOOOText);
     }
     case 'focusTime': {
       return 'Focus Time';
